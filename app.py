@@ -140,7 +140,7 @@ def refreshToken():
 
 if __name__ == '__main__':
 
-    PRODUCTION_MODE = False
+    PRODUCTION_MODE = True
 
     if PRODUCTION_MODE:
         print('Production mode')
