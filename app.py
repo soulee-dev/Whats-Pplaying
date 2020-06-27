@@ -1,8 +1,10 @@
 #Whats-Pplaying Shows what are you playing now in spotify
 #DB setting email(varchar, 30) uuid(char, 36), access_token(varchar, 180), refresh_token(varchar, 180), expires_in(int, 4), recent_granted(timestamp)
 import datetime
+import io
 
-from flask import Flask, request, redirect, send_file
+import cv2
+from flask import Flask, request, redirect, send_file, make_response
 import urllib.parse
 import requests
 import json
@@ -14,7 +16,7 @@ from image import PlayerImage
 app = Flask(__name__)
 
 scopes = 'user-read-playback-state user-read-email'
-redirect_url = 'http://118.44.195.217:5000/callback'
+redirect_url = 'http://localhost:5000/callback'
 spotify_auth = 'https://accounts.spotify.com/authorize'
 spotify_token = 'https://accounts.spotify.com/api/token'
 my_client_id = secrets.my_client_id
@@ -94,15 +96,26 @@ def playerStatus():
 
     data = json.loads(req.text)
 
+    #Parsing json data
     image_uri = data['item']['album']['images'][0]['url']
     progress_ms = data['progress_ms']
     duration_ms = data['item']['duration_ms']
     name = data['item']['name']
     artist = data['item']['album']['artists'][0]['name']
 
-    filepath = pi.createImage(image_uri=image_uri, progress_ms=progress_ms, duration_ms=duration_ms, name=name, artist=artist)
 
-    return send_file(filepath, mimetype='image/png')
+    #Create image and return it as BytesIO
+    file_object = io.BytesIO()
+    img = pi.createPlayerImage(image_uri=image_uri, progress_ms=progress_ms, duration_ms=duration_ms, name=name, artist=artist)
+    img.save(file_object, 'PNG')
+    file_object.seek(0)
+
+    response = send_file(file_object, mimetype='image/PNG')
+
+    response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+    response.headers['Pragma'] = 'no-cache'
+
+    return response
 
 @app.route('/refresh-token')
 def refreshToken():
@@ -115,8 +128,6 @@ def refreshToken():
     #Exit when no data
     if len(result) < 1:
         return 'There is no data!'
-
-    print(result[0][3])
 
     data = {
         'grant_type': 'refresh_token',
@@ -140,14 +151,14 @@ def refreshToken():
 
 if __name__ == '__main__':
 
-    PRODUCTION_MODE = True
+    PRODUCTION_MODE = False
 
     if PRODUCTION_MODE:
         print('Production mode')
         app.debug = False
-        app.run()
+        app.run(host='0.0.0.0')
 
-    elif not PRODUCTION_MODE:
+    if not PRODUCTION_MODE:
         print('Develop mode')
         app.debug = True
         app.run(host='0.0.0.0')
