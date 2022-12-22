@@ -10,7 +10,7 @@ Jinja2==2.11.3
 MarkupSafe==1.1.1
 mysql-connector-python==8.0.20
 Pillow==9.3.0
-protobuf==3.12.2
+protobuf==3.18.3
 pytz==2020.1
 redis==3.5.3
 requests==2.23.0
