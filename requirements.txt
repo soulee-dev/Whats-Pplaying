@@ -12,7 +12,7 @@ mysql-connector-python==8.0.20
 Pillow==9.3.0
 protobuf==3.18.3
 pytz==2020.1
-redis==4.5.3
+redis==4.5.4
 requests==2.31.0
 six==1.15.0
 sqlparse==0.4.4
